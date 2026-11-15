@@ -16,5 +16,8 @@ def run() -> None:
             print("Farewell.")
             break
         print(result)
+        if game.player_is_dead():
+            print("Game over.")
+            break
         if game.is_over():
             print("You have escaped the dungeon. You win!")

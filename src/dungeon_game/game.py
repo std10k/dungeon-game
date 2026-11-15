@@ -1,4 +1,4 @@
-from dungeon_game.models import Item, Key, Player, Potion, Room
+from dungeon_game.models import Item, Key, Monster, Player, Potion, Room
 from dungeon_game.world import build_map
 
 DIRECTIONS = {"north", "south", "east", "west"}
@@ -15,8 +15,9 @@ class Game:
         exits = ", ".join(room.exits.keys()) if room.exits else "none"
         lines = [room.name, room.description, f"Exits: {exits}"]
         if room.items:
-            item_names = ", ".join(item.name for item in room.items)
-            lines.append(f"Items: {item_names}")
+            lines.append(f"Items: {', '.join(item.name for item in room.items)}")
+        if room.monsters:
+            lines.append(f"Monsters: {', '.join(m.name for m in room.monsters)}")
         return "\n".join(lines)
 
     def move(self, direction: str) -> str:
@@ -62,6 +63,33 @@ class Game:
             return "This key doesn't work here."
         return f"You can't use the {item.name}."
 
+    def attack(self, monster_name: str) -> str:
+        room = self.rooms[self.current_room_id]
+        monster = next((m for m in room.monsters if m.name.lower() == monster_name.lower()), None)
+        if monster is None:
+            return f"There is no '{monster_name}' here to attack."
+        lines = []
+        monster.health -= self.player.attack
+        lines.append(
+            f"You attack the {monster.name} for {self.player.attack} damage."
+            f" ({monster.name} health: {max(0, monster.health)})"
+        )
+        if monster.health <= 0:
+            room.monsters.remove(monster)
+            lines.append(f"The {monster.name} is defeated!")
+            return "\n".join(lines)
+        self.player.health -= monster.attack
+        lines.append(
+            f"The {monster.name} attacks you for {monster.attack} damage."
+            f" (Your health: {max(0, self.player.health)})"
+        )
+        if self.player.health <= 0:
+            lines.append("You have been defeated...")
+        return "\n".join(lines)
+
+    def player_is_dead(self) -> bool:
+        return self.player.health <= 0
+
     def handle_command(self, raw: str) -> str:
         parts = raw.strip().lower().split()
         if not parts:
@@ -74,13 +102,15 @@ class Game:
             return self.move(parts[1])
         if parts[0] in DIRECTIONS:
             return self.move(parts[0])
-        if parts[0] in ("take", "drop", "use") and len(parts) > 1:
-            item_name = " ".join(parts[1:])
+        if parts[0] in ("take", "drop", "use", "attack") and len(parts) > 1:
+            target = " ".join(parts[1:])
             if parts[0] == "take":
-                return self.take(item_name)
+                return self.take(target)
             if parts[0] == "drop":
-                return self.drop(item_name)
-            return self.use(item_name)
+                return self.drop(target)
+            if parts[0] == "use":
+                return self.use(target)
+            return self.attack(target)
         return f"Unknown command: {raw.strip()!r}"
 
     def is_over(self) -> bool:
