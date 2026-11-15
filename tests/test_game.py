@@ -49,8 +49,12 @@ def test_is_over_false_at_start(game):
 
 
 def test_is_over_true_at_exit(game):
-    for direction in ["north", "north", "north", "north"]:
-        game.move(direction)
+    game.move("north")  # -> hallway
+    game.move("north")  # -> chamber
+    game.take("iron key")
+    game.use("iron key")  # unlock north
+    game.move("north")  # -> treasury
+    game.move("north")  # -> exit
     assert game.is_over()
 
 
