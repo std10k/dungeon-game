@@ -54,6 +54,8 @@ def test_is_over_true_at_exit(game):
     game.take("iron key")
     game.use("iron key")  # unlock north
     game.move("north")  # -> treasury
+    game.player.attack = 100
+    game.attack("goblin")  # defeat goblin
     game.move("north")  # -> exit
     assert game.is_over()
 

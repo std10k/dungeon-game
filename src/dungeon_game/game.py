@@ -1,7 +1,10 @@
+import random
+
 from dungeon_game.models import Item, Key, Monster, Player, Potion, Room
 from dungeon_game.world import build_map
 
 DIRECTIONS = {"north", "south", "east", "west"}
+OPPOSITES = {"north": "south", "south": "north", "east": "west", "west": "east"}
 
 
 class Game:
@@ -9,6 +12,7 @@ class Game:
         self.rooms: dict[str, Room] = build_map()
         self.player = player
         self.current_room_id = "entrance"
+        self.entry_direction: str | None = None
 
     def look(self) -> str:
         room = self.rooms[self.current_room_id]
@@ -26,7 +30,18 @@ class Game:
             return f"You can't go {direction} from here."
         if direction in room.locked_exits:
             return "That way is locked."
+        if room.monsters and direction != self.entry_direction:
+            monster = random.choice(room.monsters)
+            self.player.health -= monster.attack
+            lines = [
+                f"You try to flee! The {monster.name} strikes you for {monster.attack} damage."
+                f" (Your health: {max(0, self.player.health)})"
+            ]
+            if self.player.health <= 0:
+                lines.append("You have been defeated...")
+            return "\n".join(lines)
         self.current_room_id = room.exits[direction]
+        self.entry_direction = OPPOSITES.get(direction)
         return self.look()
 
     def take(self, name: str) -> str:
