@@ -1,4 +1,4 @@
-from dungeon_game.models import Key, Potion, Room
+from dungeon_game.models import Key, Monster, Potion, Room
 
 
 def build_map() -> dict[str, Room]:
@@ -30,6 +30,7 @@ def build_map() -> dict[str, Room]:
             name="Treasury",
             description="A room filled with dusty chests.",
             exits={"south": "chamber", "north": "exit"},
+            monsters=[Monster(name="Goblin", health=20, attack=5)],
         ),
         Room(
             id="exit",
