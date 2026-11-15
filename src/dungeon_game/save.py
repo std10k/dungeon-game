@@ -8,6 +8,7 @@ from dungeon_game.models import Item, Key, Monster, Player, Potion
 def save_game(game: Game, path: str | Path) -> None:
     data = {
         "current_room_id": game.current_room_id,
+        "entry_direction": game.entry_direction,
         "player": {
             "name": game.player.name,
             "health": game.player.health,
@@ -36,6 +37,7 @@ def load_game(path: str | Path) -> Game:
     )
     game = Game(player=player)
     game.current_room_id = data["current_room_id"]
+    game.entry_direction = data.get("entry_direction")
     for room_id, room_data in data["rooms"].items():
         room = game.rooms[room_id]
         room.items = [_deserialize_item(i) for i in room_data["items"]]
