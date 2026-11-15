@@ -1,4 +1,4 @@
-from dungeon_game.models import Room
+from dungeon_game.models import Key, Potion, Room
 
 
 def build_map() -> dict[str, Room]:
@@ -15,12 +15,15 @@ def build_map() -> dict[str, Room]:
             name="Hallway",
             description="A long stone hallway with torches on the walls.",
             exits={"south": "entrance", "north": "chamber"},
+            items=[Potion(name="Health Potion", description="A small vial of red liquid.")],
         ),
         Room(
             id="chamber",
             name="Chamber",
             description="A wide chamber with a cracked stone floor.",
             exits={"south": "hallway", "north": "treasury"},
+            items=[Key(name="Iron Key", description="A heavy iron key.", unlocks="chamber")],
+            locked_exits={"north"},
         ),
         Room(
             id="treasury",
