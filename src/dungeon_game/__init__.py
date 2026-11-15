@@ -1,2 +1,3 @@
 def main() -> None:
-    print("Hello from dungeon-game!")
+    from dungeon_game.cli import run
+    run()
