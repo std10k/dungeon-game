@@ -93,3 +93,24 @@ def test_monster_counterattack_is_one_monster(game):
     game.use("potion b")  # triggers exactly one monster attack
     goblin = game.rooms["treasury"].monsters[0]
     assert game.player.health == health_before - goblin.attack
+
+
+def test_blocked_flee_closes_free_use_window(game):
+    _move_to_treasury(game)
+    game.move("north")  # blocked — provoked attack closes free-use window
+    game.player.inventory.append(Potion(name="Test Potion", description=".", heal_amount=50))
+    health_before = game.player.health
+    game.use("test potion")  # should trigger counterattack
+    goblin = game.rooms["treasury"].monsters[0]
+    # health = health_before + 50 (heal) - goblin.attack (counterattack)
+    assert game.player.health == health_before + 50 - goblin.attack
+
+
+def test_attack_closes_free_use_window(game):
+    _move_to_treasury(game)
+    game.attack("goblin")  # attack closes free-use window (goblin survives — 10 dmg vs 20 hp)
+    game.player.inventory.append(Potion(name="Test Potion", description=".", heal_amount=50))
+    health_before = game.player.health
+    game.use("test potion")  # should trigger counterattack
+    goblin = game.rooms["treasury"].monsters[0]
+    assert game.player.health == health_before + 50 - goblin.attack
