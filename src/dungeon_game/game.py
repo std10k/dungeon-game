@@ -34,6 +34,7 @@ class Game:
         if room.monsters and direction != self.entry_direction:
             monster = random.choice(room.monsters)
             self.player.health -= monster.attack
+            self.first_use_in_room = False
             lines = [
                 f"You try to flee! The {monster.name} strikes you for {monster.attack} damage."
                 f" (Your health: {max(0, self.player.health)})"
@@ -108,6 +109,7 @@ class Game:
         monster = next((m for m in room.monsters if m.name.lower() == monster_name.lower()), None)
         if monster is None:
             return f"There is no '{monster_name}' here to attack."
+        self.first_use_in_room = False
         lines = []
         monster.health -= self.player.attack
         lines.append(
