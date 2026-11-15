@@ -13,6 +13,7 @@ class Game:
         self.player = player
         self.current_room_id = "entrance"
         self.entry_direction: str | None = None
+        self.first_use_in_room: bool = True
 
     def look(self) -> str:
         room = self.rooms[self.current_room_id]
@@ -42,6 +43,7 @@ class Game:
             return "\n".join(lines)
         self.current_room_id = room.exits[direction]
         self.entry_direction = OPPOSITES.get(direction)
+        self.first_use_in_room = True
         return self.look()
 
     def take(self, name: str) -> str:
@@ -68,15 +70,38 @@ class Game:
         if isinstance(item, Potion):
             self.player.health += item.heal_amount
             self.player.inventory.remove(item)
-            return f"You drink the {item.name} and restore {item.heal_amount} health. (Health: {self.player.health})"
+            result = f"You drink the {item.name} and restore {item.heal_amount} health. (Health: {self.player.health})"
+            return self._complete_turn(result)
         if isinstance(item, Key):
             room = self.rooms[self.current_room_id]
             if item.unlocks == self.current_room_id and room.locked_exits:
                 room.locked_exits.clear()
                 self.player.inventory.remove(item)
-                return f"You use the {item.name}. You hear a click — the way is now open."
+                result = f"You use the {item.name}. You hear a click — the way is now open."
+                return self._complete_turn(result)
             return "This key doesn't work here."
         return f"You can't use the {item.name}."
+
+    def _complete_turn(self, action_result: str) -> str:
+        room = self.rooms[self.current_room_id]
+        if not room.monsters:
+            return action_result
+        if self.first_use_in_room:
+            self.first_use_in_room = False
+            return action_result
+        return action_result + "\n" + self._monster_counterattack()
+
+    def _monster_counterattack(self) -> str:
+        room = self.rooms[self.current_room_id]
+        monster = random.choice(room.monsters)
+        self.player.health -= monster.attack
+        lines = [
+            f"The {monster.name} seizes the moment and attacks you for {monster.attack} damage."
+            f" (Your health: {max(0, self.player.health)})"
+        ]
+        if self.player.health <= 0:
+            lines.append("You have been defeated...")
+        return "\n".join(lines)
 
     def attack(self, monster_name: str) -> str:
         room = self.rooms[self.current_room_id]
