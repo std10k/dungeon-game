@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from dungeon_game.game import Game
-from dungeon_game.models import Item, Key, Monster, Player, Potion
+from dungeon_game.models import Item, Key, Monster, Player, Potion, Room
 
 
 def save_game(game: Game, path: str | Path) -> None:
@@ -18,6 +18,9 @@ def save_game(game: Game, path: str | Path) -> None:
         },
         "rooms": {
             room_id: {
+                "name": room.name,
+                "description": room.description,
+                "exits": room.exits,
                 "items": [_serialize_item(i) for i in room.items],
                 "locked_exits": list(room.locked_exits),
                 "monsters": [_serialize_monster(m) for m in room.monsters],
@@ -36,16 +39,28 @@ def load_game(path: str | Path) -> Game:
         attack=data["player"]["attack"],
         inventory=[_deserialize_item(i) for i in data["player"]["inventory"]],
     )
-    game = Game(player=player)
+    rooms = {
+        room_id: _deserialize_room(room_id, room_data)
+        for room_id, room_data in data["rooms"].items()
+    }
+    game = Game(player=player, rooms=rooms)
     game.current_room_id = data["current_room_id"]
     game.entry_direction = data.get("entry_direction")
     game.first_use_in_room = data.get("first_use_in_room", True)
-    for room_id, room_data in data["rooms"].items():
-        room = game.rooms[room_id]
-        room.items = [_deserialize_item(i) for i in room_data["items"]]
-        room.locked_exits = set(room_data["locked_exits"])
-        room.monsters = [_deserialize_monster(m) for m in room_data["monsters"]]
     return game
+
+
+def _deserialize_room(room_id: str, d: dict) -> Room:
+    room = Room(
+        id=room_id,
+        name=d["name"],
+        description=d["description"],
+        exits=d["exits"],
+    )
+    room.items = [_deserialize_item(i) for i in d["items"]]
+    room.locked_exits = set(d["locked_exits"])
+    room.monsters = [_deserialize_monster(m) for m in d["monsters"]]
+    return room
 
 
 def _serialize_item(item: Item) -> dict:

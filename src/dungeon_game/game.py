@@ -8,8 +8,9 @@ OPPOSITES = {"north": "south", "south": "north", "east": "west", "west": "east"}
 
 
 class Game:
-    def __init__(self, player: Player) -> None:
-        self.rooms: dict[str, Room] = build_map()
+    def __init__(self, player: Player, rooms: dict[str, Room] | None = None,
+                 seed: int | None = None) -> None:
+        self.rooms: dict[str, Room] = rooms if rooms is not None else build_map(seed=seed)
         self.player = player
         self.current_room_id = "entrance"
         self.entry_direction: str | None = None

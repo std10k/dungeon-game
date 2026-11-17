@@ -5,10 +5,6 @@ from dungeon_game.models import Key, Player, Potion
 from dungeon_game.save import load_game, save_game
 
 
-@pytest.fixture
-def game() -> Game:
-    return Game(player=Player(name="Hero"))
-
 
 def test_save_creates_json_file(game, tmp_path):
     path = tmp_path / "save.json"
@@ -81,3 +77,14 @@ def test_round_trip_restores_dead_monsters(game, tmp_path):
     save_game(game, path)
     loaded = load_game(path)
     assert loaded.rooms["treasury"].monsters == []
+
+
+def test_round_trip_restores_room_structure(game, tmp_path):
+    path = tmp_path / "save.json"
+    save_game(game, path)
+    loaded = load_game(path)
+    for room_id, room in game.rooms.items():
+        assert room_id in loaded.rooms
+        assert loaded.rooms[room_id].name == room.name
+        assert loaded.rooms[room_id].description == room.description
+        assert loaded.rooms[room_id].exits == room.exits
