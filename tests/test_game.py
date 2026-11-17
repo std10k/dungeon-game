@@ -3,10 +3,6 @@ from dungeon_game.game import Game
 from dungeon_game.models import Player
 
 
-@pytest.fixture
-def game() -> Game:
-    return Game(player=Player(name="Hero"))
-
 
 def test_starts_at_entrance(game):
     assert game.current_room_id == "entrance"

@@ -1,9 +1,9 @@
 from dungeon_game.world import build_map
 
 
-def test_build_map_returns_five_rooms():
+def test_build_map_returns_ten_rooms():
     rooms = build_map()
-    assert len(rooms) == 5
+    assert len(rooms) == 10
 
 
 def test_all_exits_point_to_valid_rooms():

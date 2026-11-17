@@ -3,10 +3,6 @@ from dungeon_game.game import Game
 from dungeon_game.models import Player, Potion
 
 
-@pytest.fixture
-def game() -> Game:
-    return Game(player=Player(name="Hero"))
-
 
 def _move_to_hallway(game: Game) -> None:
     game.move("north")  # entrance -> hallway
